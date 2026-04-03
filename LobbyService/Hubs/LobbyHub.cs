@@ -64,4 +64,20 @@ public class LobbyHub : Hub
         var updatedLobby = await _actionService.RollDiceAsync(accessCode, userId, rolledNumber);
         await Clients.Group(accessCode).SendAsync("LobbyStateUpdated", updatedLobby);
     }
+
+    public async Task StartGame(string accessCode, int userId)
+    {
+        try
+        {
+            var success = await _actionService.StartGameAsync(accessCode, userId);
+            if (success)
+            {
+                await Clients.Group(accessCode).SendAsync("GameStarted");
+            }
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", ex.Message);
+        }
+    }
 }

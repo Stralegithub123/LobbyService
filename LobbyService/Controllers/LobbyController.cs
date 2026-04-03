@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using LobbyService.Model;
 using LobbyService;
+using Microsoft.AspNetCore.SignalR;
+using LobbyService.Hubs;
 
 namespace Backend.Persistence.Controllers;
 

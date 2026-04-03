@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using LobbyService.Model;
 using LobbyService;
 using LobbyService.Data.Records;
+using Microsoft.AspNetCore.SignalR;
+using LobbyService.Hubs;
 
 namespace Backend.Persistence.Controllers;
 
@@ -10,10 +12,12 @@ namespace Backend.Persistence.Controllers;
 public class LobbyPlayerController : ControllerBase
 {
     private readonly ILobbyService _lobbyService;
+    private readonly IHubContext<LobbyHub> _hubContext;
 
-    public LobbyPlayerController(ILobbyService lobbyService)
+    public LobbyPlayerController(ILobbyService lobbyService, IHubContext<LobbyHub> hubContext)
     {
         _lobbyService = lobbyService;
+        _hubContext = hubContext;
     }
 
     [HttpPost("Join")]
@@ -49,6 +53,12 @@ public class LobbyPlayerController : ControllerBase
         try
         {
             await _lobbyService.RemovePlayerAsync(accessCode, userId);
+            var lobby = await _lobbyService.GetLobbyAsync(accessCode);
+
+            if (lobby != null)
+            {
+                await _hubContext.Clients.Group(accessCode).SendAsync("LobbyStateUpdated", lobby);
+            }
             return Ok("Igrač je napustio lobi.");
         }
         catch (Exception e)

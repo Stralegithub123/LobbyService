@@ -78,4 +78,33 @@ public class LobbyActionManager : ILobbyActionService
             lobby.Semaphore.Release();
         }
     }
+
+    public async Task<bool> StartGameAsync(string accessCode, int userId)
+    {
+        var lobby = await _lobbyService.GetLobbyAsync(accessCode);
+        if (lobby == null) 
+            throw new Exception("Lobi ne postoji.");
+
+        await lobby.Semaphore.WaitAsync();
+        try
+        {
+            if (lobby.HostUserId != userId)
+                throw new Exception("Samo host može započeti igru.");
+
+            if (lobby.Players.Count < 3)
+                throw new Exception("Potrebno je najmanje 2 igrača za početak igre.");
+
+            if (!lobby.Players.All(p => p.IsReady))
+                throw new Exception("Nisu svi igrači spremni.");
+        }
+        finally
+        {
+            lobby.Semaphore.Release();
+        }
+        await _lobbyService.DeleteLobbyAsync(accessCode);
+
+        // Ovde se dodaje komunikacija sa GameService-om, kada ga budem napravio.
+
+        return true;
+    }
 }
