@@ -53,12 +53,12 @@ public class LobbyPlayerController : ControllerBase
         try
         {
             await _lobbyService.RemovePlayerAsync(accessCode, userId);
-            var lobby = await _lobbyService.GetLobbyAsync(accessCode);
+            // var lobby = await _lobbyService.GetLobbyAsync(accessCode);
 
-            if (lobby != null)
-            {
-                await _hubContext.Clients.Group(accessCode).SendAsync("LobbyStateUpdated", lobby);
-            }
+            // if (lobby != null)
+            // {
+            //     await _hubContext.Clients.Group(accessCode).SendAsync("LobbyStateUpdated", lobby);
+            // }
             return Ok("Igrač je napustio lobi.");
         }
         catch (Exception e)

@@ -1,6 +1,7 @@
 using LobbyService.Services.LobbyCode;
 using LobbyService;
 using LobbyService.Hubs;
+using LobbyService.Hubs.ConnectionMapping;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,7 @@ builder.Services.AddControllers();
 builder.Services.AddSignalR();
 
 builder.Services.AddSingleton<LobbyCodeService>();
+builder.Services.AddSingleton<ConnectionMappingService>();
 builder.Services.AddSingleton<ILobbyActionService, LobbyActionManager>();
 builder.Services.AddSingleton<ILobbyService, LobbyManager>();
 

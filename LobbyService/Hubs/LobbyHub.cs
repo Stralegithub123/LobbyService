@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.SignalR;
 using LobbyService;
 using LobbyService.Model;
 using LobbyService.Data.Enumerations;
+using LobbyService.Hubs.ConnectionMapping;
 
 namespace LobbyService.Hubs;
 
@@ -9,16 +10,21 @@ public class LobbyHub : Hub
 {
     private readonly ILobbyService _lobbyService;
     private readonly ILobbyActionService _actionService;
+    private readonly ConnectionMappingService _mapping;
 
-    public LobbyHub(ILobbyService lobbyService, ILobbyActionService actionService)
+    public LobbyHub(ILobbyService lobbyService, 
+        ILobbyActionService actionService, 
+        ConnectionMappingService mapping)
     {
         _lobbyService = lobbyService;
         _actionService = actionService;
+        _mapping = mapping;
     }
 
-    public async Task JoinLobbyGroup(string accessCode)
+    public async Task JoinLobbyGroup(string accessCode, int userId)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, accessCode);
+        _mapping.Add(Context.ConnectionId, accessCode, userId);
 
         var lobby = await _lobbyService.GetLobbyAsync(accessCode);
         
@@ -79,5 +85,20 @@ public class LobbyHub : Hub
         {
             await Clients.Caller.SendAsync("Error", ex.Message);
         }
+    }
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        if (_mapping.TryGet(Context.ConnectionId, out var accessCode, out var userId))
+        {
+            await _lobbyService.RemovePlayerAsync(accessCode, userId);
+            var lobby = await _lobbyService.GetLobbyAsync(accessCode);
+            if (lobby != null)
+            {
+                await Clients.Group(accessCode).SendAsync("LobbyStateUpdated", lobby);
+            }
+            _mapping.Remove(Context.ConnectionId);
+        }
+        await base.OnDisconnectedAsync(exception);
     }
 }
