@@ -6,6 +6,7 @@ public class Lobby
 {
     public int Id { get; set; }
     public int HostUserId { get; set; }
+    public int MaxPlayCout {get; set;}
     public string AccessCode { get; set; } = string.Empty;
     public List<LobbyPlayer> Players { get; set; } = new List<LobbyPlayer>();
     [JsonIgnore] 

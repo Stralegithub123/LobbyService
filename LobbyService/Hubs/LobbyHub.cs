@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.SignalR;
-using LobbyService;
-using LobbyService.Model;
 using LobbyService.Data.Enumerations;
 using LobbyService.Hubs.ConnectionMapping;
 
@@ -51,6 +49,19 @@ public class LobbyHub : Hub
         try
         {
             var updatedLobby = await _actionService.ChangeColorAsync(accessCode, userId, (Color)colorCode);
+            await Clients.Group(accessCode).SendAsync("LobbyStateUpdated", updatedLobby);
+        }
+        catch (Exception ex)
+        {
+            await Clients.Caller.SendAsync("Error", ex.Message);
+        }
+    }
+
+    public async Task SetMaxPlayCount(string accessCode, int userId, int maxPlayCout)
+    {
+        try
+        {
+            var updatedLobby = await _actionService.SetMaxPlayCount(accessCode, userId, maxPlayCout);
             await Clients.Group(accessCode).SendAsync("LobbyStateUpdated", updatedLobby);
         }
         catch (Exception ex)

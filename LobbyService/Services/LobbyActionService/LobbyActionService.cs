@@ -79,6 +79,27 @@ public class LobbyActionManager : ILobbyActionService
         }
     }
 
+    public async Task<Lobby> SetMaxPlayCount(string accessCode, int userId, int maxPlayCout)
+    {
+        if(maxPlayCout <= 25)
+            throw new Exception("Maksimalan broj poteza mora biti veci od 25.");
+        var lobby = await _lobbyService.GetLobbyAsync(accessCode);
+        if (lobby == null) 
+            throw new Exception("Lobi ne postoji.");
+        await lobby.Semaphore.WaitAsync();
+        try
+        {
+            if (lobby.HostUserId != userId)
+                throw new Exception("Samo host može promeni maksimalan broj poteza u igri.");
+            lobby.MaxPlayCout = maxPlayCout;
+            return lobby;
+        }
+        finally
+        {
+            lobby.Semaphore.Release();
+        }
+    }
+
     public async Task<bool> StartGameAsync(string accessCode, int userId)
     {
         var lobby = await _lobbyService.GetLobbyAsync(accessCode);

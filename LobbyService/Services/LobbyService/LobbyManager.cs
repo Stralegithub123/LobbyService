@@ -28,6 +28,7 @@ public class LobbyManager : ILobbyService
         {
             Id = newId,
             HostUserId = hostUserId,
+            MaxPlayCout = 50,
             AccessCode = accessCode,
             Players = new List<LobbyPlayer>()
         };
